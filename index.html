@@ -4,10 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Leads Tracker Board</title>
-  <!-- 引入 Handsontable 样式和库 -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@13.0.0/dist/handsontable.min.css"/>
   <script src="https://cdn.jsdelivr.net/npm/handsontable@13.0.0/dist/handsontable.min.js"></script>
-
   <style>
     body {
       font-family: "Segoe UI", sans-serif;
@@ -30,7 +28,6 @@
   <div id="board"></div>
 
   <script>
-    // 初始化 Handsontable
     const container = document.getElementById('board');
     const data = [
       ['活动', '姓名', 'Required Leads', 'Pruforce Leads', 'Updated Status Leads']
@@ -49,40 +46,46 @@
       manualColumnMove: true,
       afterChange: function(changes, source) {
         if (source === 'loadData') return;
-        saveDataToGoogleSheets(hot.getData());
+        saveDataToGoogleSheets(hot.getData());  // 编辑后保存数据到 Google Sheets
       }
     });
 
     // 保存数据到 Google Sheets
     async function saveDataToGoogleSheets(tableData) {
-      const response = await fetch('https://script.google.com/macros/s/AKfycbwpYQEzXAM-Nb86GKxwzw3rExEWzbD9TWcm1rQSZezaN7WAG2FolUKULHN_doITSTsqhg/exec', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ table: tableData })  // 发送数据
-      });
+      try {
+        const response = await fetch('https://script.google.com/macros/s/AKfycbwpYQEzXAM-Nb86GKxwzw3rExEWzbD9TWcm1rQSZezaN7WAG2FolUKULHN_doITSTsqhg/exec', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ table: tableData })  // 发送数据到 Google Sheets
+        });
 
-      if (!response.ok) {
-        console.error('Failed to save data to Google Sheets');
-      } else {
-        console.log('Data successfully saved to Google Sheets');
+        if (response.ok) {
+          console.log('Data successfully saved to Google Sheets');
+        } else {
+          console.error('Failed to save data');
+        }
+      } catch (error) {
+        console.error('Error:', error);
       }
     }
 
     // 从 Google Sheets 加载数据
     async function loadDataFromGoogleSheets() {
-      const response = await fetch('https://script.google.com/macros/s/AKfycbwpYQEzXAM-Nb86GKxwzw3rExEWzbD9TWcm1rQSZezaN7WAG2FolUKULHN_doITSTsqhg/exec');
-      const data = await response.json();
+      try {
+        const response = await fetch('https://script.google.com/macros/s/AKfycbwpYQEzXAM-Nb86GKxwzw3rExEWzbD9TWcm1rQSZezaN7WAG2FolUKULHN_doITSTsqhg/exec');
+        const data = await response.json();
 
-      if (data && data.table) {
-        hot.loadData(data.table);
-      } else {
-        console.log('Failed to load data');
+        if (data && data.table) {
+          hot.loadData(data.table);  // 加载数据到表格
+        }
+      } catch (error) {
+        console.error('Failed to load data:', error);
       }
     }
 
-    loadDataFromGoogleSheets(); // 页面加载时从 Google Sheets 获取数据
+    loadDataFromGoogleSheets();  // 页面加载时加载数据
   </script>
 </body>
 </html>
