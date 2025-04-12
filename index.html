@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -26,46 +26,38 @@
   <h1>📋 活动进度协作表格</h1>
   <div id="board"></div>
 
-  <!-- Handsontable -->
-  <script src="https://cdn.jsdelivr.net/npm/handsontable@13.0.0/dist/handsontable.min.js"></script>
-
-  <!-- Firebase config -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-analytics.js";
-    import { getFirestore } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+    import Handsontable from "https://cdn.jsdelivr.net/npm/handsontable@13.0.0/+esm";
 
-    // Firebase 配置
     const firebaseConfig = {
       apiKey: "AIzaSyBVY4Wt1Of8jeLtp0EQ5_S1_V97EtYiw54",
       authDomain: "leads-a9bba.firebaseapp.com",
       projectId: "leads-a9bba",
-      storageBucket: "leads-a9bba.firebasestorage.app",
+      storageBucket: "leads-a9bba.appspot.com",
       messagingSenderId: "569369788274",
       appId: "1:569369788274:web:f4cf9080d662519a0327eb",
       measurementId: "G-J3NQ1WJ85F"
     };
 
-    // 初始化 Firebase
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // 初始化表格
     const container = document.getElementById('board');
-    let hot;
 
     const data = [
       ['活动', '姓名', 'Required Leads', 'Pruforce Leads', 'Updated Status Leads']
     ];
 
-    hot = new Handsontable(container, {
+    const hot = new Handsontable(container, {
       data,
       colHeaders: true,
       rowHeaders: true,
       width: '100%',
       height: 500,
       stretchH: 'all',
-      licenseKey: 'non-commercial-and-evaluation', 
+      licenseKey: 'non-commercial-and-evaluation',
       contextMenu: true,
       manualRowMove: true,
       manualColumnMove: true,
@@ -75,24 +67,23 @@
       }
     });
 
-    const docRef = db.collection('sharedTables').doc('main');
+    const docRef = doc(db, 'sharedTables', 'main');
 
     async function loadDataFromFirestore() {
-      const doc = await docRef.get();
-      if (doc.exists) {
-        const tableData = doc.data().table;
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        const tableData = docSnap.data().table;
         hot.loadData(tableData);
       } else {
-        await docRef.set({ table: data });
+        await setDoc(docRef, { table: data });
       }
     }
 
     async function saveDataToFirestore(tableData) {
-      await docRef.set({ table: tableData });
+      await setDoc(docRef, { table: tableData });
     }
 
     loadDataFromFirestore();
   </script>
-
 </body>
 </html>
