@@ -19,17 +19,17 @@
     <div id="table-container"></div>
     
     <script>
-        // Google Apps Script URL (Ensure you deploy the script as a web app and copy the URL here)
-        const scriptUrl = 'https://script.google.com/macros/s/AKfycbwpYQEzXAM-Nb86GKxwzw3rExEWzbD9TWcm1rQSZezaN7WAG2FolUKULHN_doITSTsqhg/exec';
+        const scriptUrl = 'https://script.google.com/macros/s/AKfycbwpYQEzXAM-Nb86GKxwzw3rExEWzbD9TWcm1rQSZezaN7WAG2FolUKULHN_doITSTsqhg/exec'; // Google Apps Script URL
 
-        // Handsontable configuration
         const container = document.querySelector('#table-container');
+
+        // Initialize Handsontable
         const hot = new Handsontable(container, {
             data: [],
             colHeaders: ['ID', 'Name', 'Status'],
             rowHeaders: true,
             columnSorting: true,
-            licenseKey: 'non-commercial-and-evaluation', // For non-commercial use
+            licenseKey: 'non-commercial-and-evaluation',
             afterChange: function (changes, source) {
                 if (source === 'loadData') {
                     return;
@@ -38,33 +38,35 @@
             }
         });
 
-        // Fetch existing data from Google Sheets when the page loads
-        window.onload = function() {
+        // Fetch data from Google Sheets when the page loads
+        window.onload = function () {
             fetch(scriptUrl)
                 .then(response => response.json())
                 .then(result => {
                     const tableData = result.table || [];
-                    hot.loadData(tableData);
+                    hot.loadData(tableData);  // Load the data into Handsontable
                 })
-                .catch(error => console.error('Error fetching data from Google Sheets:', error));
+                .catch(error => {
+                    console.error('Error fetching data from Google Sheets:', error);
+                });
         };
 
-        // Save updated data to Google Sheets
+        // Save data to Google Sheets
         function saveDataToGoogleSheets(data) {
             fetch(scriptUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ table: data })
+                body: JSON.stringify({ table: data })  // Send updated data
             })
-            .then(response => response.json())
-            .then(result => {
-                console.log("Data saved successfully:", result);
-            })
-            .catch(error => {
-                console.error("Error saving data:", error);
-            });
+                .then(response => response.json())
+                .then(result => {
+                    console.log('Data saved successfully:', result);
+                })
+                .catch(error => {
+                    console.error('Error saving data:', error);
+                });
         }
     </script>
 </body>
