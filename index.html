@@ -118,5 +118,51 @@
 
     loadDataFromFirestore();
   </script>
+  <script>
+    const container = document.getElementById('board'); // 你的表格容器
+    let hot;
+
+    // 初始化 Handsontable
+    const data = [
+        ['活动', '姓名', 'Required Leads', 'Pruforce Leads', 'Updated Status Leads']
+    ];
+    hot = new Handsontable(container, {
+        data,
+        colHeaders: true,
+        rowHeaders: true,
+        width: '100%',
+        height: 500,
+        stretchH: 'all',
+        licenseKey: 'non-commercial-and-evaluation',  // 免费许可
+        contextMenu: true,
+        manualRowMove: true,
+        manualColumnMove: true,
+        afterChange: function(changes, source) {
+            if (source === 'loadData') return;
+            saveDataToFirestore(hot.getData());
+        }
+    });
+
+    // Firestore 数据读取
+    const docRef = db.collection('sharedTables').doc('main');
+
+    // 从 Firestore 加载数据
+    async function loadDataFromFirestore() {
+        const doc = await docRef.get();
+        if (doc.exists) {
+            const tableData = doc.data().table;
+            hot.loadData(tableData);
+        } else {
+            await docRef.set({ table: data });
+        }
+    }
+
+    // 保存数据到 Firestore
+    async function saveDataToFirestore(tableData) {
+        await docRef.set({ table: tableData });
+    }
+
+    loadDataFromFirestore();
+</script>
 </body>
 </html>
