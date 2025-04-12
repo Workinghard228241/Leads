@@ -39,13 +39,14 @@
     }
   });
 
+  // 保存数据到 Google Sheets
   async function saveDataToGoogleSheets(tableData) {
     const response = await fetch('https://script.google.com/macros/s/AKfycbwpYQEzXAM-Nb86GKxwzw3rExEWzbD9TWcm1rQSZezaN7WAG2FolUKULHN_doITSTsqhg/exec', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ tableData })
+      body: JSON.stringify({ table: tableData })  // 修改这里，将字段名从 tableData 改为 table
     });
 
     if (!response.ok) {
@@ -55,14 +56,15 @@
     }
   }
 
+  // 从 Google Sheets 加载数据
   async function loadDataFromGoogleSheets() {
     const response = await fetch('https://script.google.com/macros/s/AKfycbwpYQEzXAM-Nb86GKxwzw3rExEWzbD9TWcm1rQSZezaN7WAG2FolUKULHN_doITSTsqhg/exec');
     const data = await response.json();
 
-    if (data && data.tableData) {
-      hot.loadData(data.tableData);
+    if (data && data.table) {  // 修改此处访问字段名为 table
+      hot.loadData(data.table);  // 修改此处为 data.table
     } else {
-      await setDoc(doc(db, 'sharedTables', 'main'), { table: data });
+      console.error('Failed to load data from Google Sheets');
     }
   }
 
