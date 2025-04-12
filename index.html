@@ -83,7 +83,7 @@
 
         // 保存数据到 Google Sheets
         async function saveDataToGoogleSheets(tableData) {
-          const response = await fetch('https://script.google.com/macros/s/AKfycby2sUGacImGiqlvwir8Et-cVBSAXjQqscI0ouS9mp37w9Js7rSovFjXkrUxaVRw-OpF6Q/exec', {
+          const response = await fetch('https://script.google.com/macros/s/AKfycbzxT8pD10PQ6hnTLPiyRmyqh1N8KVYK3FGIGMnO36-32U9VplKS5yTbBJ1pMgU5LTqSyQ/exec', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -101,7 +101,7 @@
 
         // 从 Google Sheets 加载数据
         async function loadDataFromGoogleSheets() {
-          const response = await fetch('https://script.google.com/macros/s/AKfycby2sUGacImGiqlvwir8Et-cVBSAXjQqscI0ouS9mp37w9Js7rSovFjXkrUxaVRw-OpF6Q/exec');
+          const response = await fetch('https://script.google.com/macros/s/AKfycbzxT8pD10PQ6hnTLPiyRmyqh1N8KVYK3FGIGMnO36-32U9VplKS5yTbBJ1pMgU5LTqSyQ/exec');
           const data = await response.json();
 
           console.log('Data loaded from Google Sheets:', data);  // 输出加载的原始数据
