@@ -8,7 +8,7 @@
     <!-- Handsontable CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@10.1.0/dist/handsontable.full.min.css">
 
-    <!-- jQuery (if you没有加载过的话，确认已引入) -->
+    <!-- jQuery (required for AJAX calls) -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <!-- Handsontable JS -->
@@ -17,8 +17,15 @@
 <body>
     <h1>Collaborative Data Entry</h1>
     <div id="table-container"></div>
-    
+
     <script>
+        // Ensure Handsontable is loaded before using it
+        if (typeof Handsontable === "undefined") {
+            console.error('Handsontable library is not loaded correctly!');
+        } else {
+            console.log('Handsontable is successfully loaded!');
+        }
+
         const scriptUrl = 'https://script.google.com/macros/s/AKfycbwpYQEzXAM-Nb86GKxwzw3rExEWzbD9TWcm1rQSZezaN7WAG2FolUKULHN_doITSTsqhg/exec'; // Google Apps Script URL
 
         const container = document.querySelector('#table-container');
@@ -32,7 +39,7 @@
             licenseKey: 'non-commercial-and-evaluation',
             afterChange: function (changes, source) {
                 if (source === 'loadData') {
-                    return;
+                    return;  // Prevent saving when loading data
                 }
                 saveDataToGoogleSheets(hot.getData());
             }
