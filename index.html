@@ -23,26 +23,11 @@
   </style>
 </head>
 <body>
-  <h1>📋 活动进度协作表格</h1>
+  <h1>📋 Lead Status by Campaigns</h1>
   <div id="board"></div>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
     import Handsontable from "https://cdn.jsdelivr.net/npm/handsontable@13.0.0/+esm";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyBVY4Wt1Of8jeLtp0EQ5_S1_V97EtYiw54",
-      authDomain: "leads-a9bba.firebaseapp.com",
-      projectId: "leads-a9bba",
-      storageBucket: "leads-a9bba.appspot.com",
-      messagingSenderId: "569369788274",
-      appId: "1:569369788274:web:f4cf9080d662519a0327eb",
-      measurementId: "G-J3NQ1WJ85F"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
 
     const container = document.getElementById('board');
 
@@ -63,27 +48,39 @@
       manualColumnMove: true,
       afterChange: function(changes, source) {
         if (source === 'loadData') return;
-        saveDataToFirestore(hot.getData());
+        saveDataToGoogleSheets(hot.getData());
       }
     });
 
-    const docRef = doc(db, 'sharedTables', 'main');
+    // 从 Google Sheets 加载数据
+    async function loadDataFromGoogleSheets() {
+      const response = await fetch('https://script.google.com/macros/s/xxx/exec'); // 用你的 Google Sheets API URL 替换这里
+      const data = await response.json();
 
-    async function loadDataFromFirestore() {
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        const tableData = docSnap.data().table;
-        hot.loadData(tableData);
+      if (data && data.table) {
+        hot.loadData(data.table);
       } else {
-        await setDoc(docRef, { table: data });
+        console.error('Failed to load data from Google Sheets');
       }
     }
 
-    async function saveDataToFirestore(tableData) {
-      await setDoc(docRef, { table: tableData });
+    // 保存数据到 Google Sheets
+    async function saveDataToGoogleSheets(tableData) {
+      const response = await fetch('https://script.google.com/macros/s/xxx/exec', { // 用你的 Google Sheets API URL 替换这里
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ table: tableData })
+      });
+
+      if (!response.ok) {
+        console.error('Failed to save data to Google Sheets');
+      }
     }
 
-    loadDataFromFirestore();
+    // 加载数据
+    loadDataFromGoogleSheets();
   </script>
 </body>
 </html>
