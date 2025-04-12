@@ -27,98 +27,76 @@
   <div id="board"></div>
 
   <script type="module">
-    document.addEventListener('DOMContentLoaded', async function () {
-      try {
-        console.log("DOM fully loaded and parsed.");
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+    import Handsontable from "https://cdn.jsdelivr.net/npm/handsontable@13.0.0/+esm";
 
-        // Import necessary libraries only after DOM is fully loaded
-        const { initializeApp } = await import("https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js");
-        const { getFirestore, doc, getDoc, setDoc } = await import("https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js");
-        const Handsontable = (await import("https://cdn.jsdelivr.net/npm/handsontable@13.0.0/+esm")).default;
+    const firebaseConfig = {
+      apiKey: "AIzaSyBVY4Wt1Of8jeLtp0EQ5_S1_V97EtYiw54",
+      authDomain: "leads-a9bba.firebaseapp.com",
+      projectId: "leads-a9bba",
+      storageBucket: "leads-a9bba.appspot.com",
+      messagingSenderId: "569369788274",
+      appId: "1:569369788274:web:f4cf9080d662519a0327eb",
+      measurementId: "G-J3NQ1WJ85F"
+    };
 
-        // Firebase configuration
-        const firebaseConfig = {
-          apiKey: "AIzaSyBVY4Wt1Of8jeLtp0EQ5_S1_V97EtYiw54",
-          authDomain: "leads-a9bba.firebaseapp.com",
-          projectId: "leads-a9bba",
-          storageBucket: "leads-a9bba.appspot.com",
-          messagingSenderId: "569369788274",
-          appId: "1:569369788274:web:f4cf9080d662519a0327eb",
-          measurementId: "G-J3NQ1WJ85F"
-        };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const container = document.getElementById('board');
-        if (!container) {
-          console.error('Element #board not found!');
-          return;
-        }
+    const container = document.getElementById('board');
 
-        console.log("Handsontable container found, initializing Handsontable...");
+    const data = [
+      ['活动', '姓名', 'Required Leads', 'Pruforce Leads', 'Updated Status Leads']
+    ];
 
-        const data = [
-          ['活动', '姓名', 'Required Leads', 'Pruforce Leads', 'Updated Status Leads']
-        ];
-
-        // Initialize Handsontable
-        const hot = new Handsontable(container, {
-          data,
-          colHeaders: true,
-          rowHeaders: true,
-          width: '100%',
-          height: 500,
-          stretchH: 'all',
-          licenseKey: 'non-commercial-and-evaluation',
-          contextMenu: true,
-          manualRowMove: true,
-          manualColumnMove: true,
-          afterChange: function(changes, source) {
-            if (source === 'loadData') return;
-            saveDataToGoogleSheets(hot.getData());
-          }
-        });
-
-        console.log("Handsontable initialized.");
-
-        // 保存数据到 Google Sheets
-        async function saveDataToGoogleSheets(tableData) {
-          const response = await fetch('https://script.google.com/macros/s/AKfycbwpYQEzXAM-Nb86GKxwzw3rExEWzbD9TWcm1rQSZezaN7WAG2FolUKULHN_doITSTsqhg/exec', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ table: tableData })  // 修改这里，将字段名从 tableData 改为 table
-          });
-
-          if (!response.ok) {
-            console.error('Failed to save data to Google Sheets');
-          } else {
-            console.log('Data successfully saved to Google Sheets');
-          }
-        }
-
-        // 从 Google Sheets 加载数据
-        async function loadDataFromGoogleSheets() {
-          const response = await fetch('https://script.google.com/macros/s/AKfycbwpYQEzXAM-Nb86GKxwzw3rExEWzbD9TWcm1rQSZezaN7WAG2FolUKULHN_doITSTsqhg/exec');
-          const data = await response.json();
-
-          console.log('Data loaded from Google Sheets:', data);  // 输出加载的原始数据
-
-          if (data && data.table) {  // 修改此处访问字段名为 table
-            hot.loadData(data.table);  // 修改此处为 data.table
-            console.log('Handsontable data loaded successfully.');
-          } else {
-            console.error('Failed to load data from Google Sheets');
-          }
-        }
-
-        loadDataFromGoogleSheets();
-
-      } catch (error) {
-        console.error("An error occurred:", error);
+    const hot = new Handsontable(container, {
+      data,
+      colHeaders: true,
+      rowHeaders: true,
+      width: '100%',
+      height: 500,
+      stretchH: 'all',
+      licenseKey: 'non-commercial-and-evaluation',
+      contextMenu: true,
+      manualRowMove: true,
+      manualColumnMove: true,
+      afterChange: function(changes, source) {
+        if (source === 'loadData') return;
+        saveDataToGoogleSheets(hot.getData());
       }
     });
+
+    // 保存数据到 Google Sheets
+    async function saveDataToGoogleSheets(tableData) {
+      const response = await fetch('https://script.google.com/macros/s/AKfycbwpYQEzXAM-Nb86GKxwzw3rExEWzbD9TWcm1rQSZezaN7WAG2FolUKULHN_doITSTsqhg/exec', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ table: tableData }) // 确保数据结构是 "table"
+      });
+
+      if (!response.ok) {
+        console.error('Failed to save data to Google Sheets');
+      } else {
+        console.log('Data successfully saved to Google Sheets');
+      }
+    }
+
+    // 从 Google Sheets 加载数据
+    async function loadDataFromGoogleSheets() {
+      const response = await fetch('https://script.google.com/macros/s/AKfycbwpYQEzXAM-Nb86GKxwzw3rExEWzbD9TWcm1rQSZezaN7WAG2FolUKULHN_doITSTsqhg/exec');
+      const data = await response.json();
+
+      if (data && data.table) {
+        hot.loadData(data.table);
+      } else {
+        console.error("Failed to load data from Google Sheets");
+      }
+    }
+
+    loadDataFromGoogleSheets();
   </script>
 </body>
 </html>
