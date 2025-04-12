@@ -29,11 +29,12 @@
   <!-- Handsontable -->
   <script src="https://cdn.jsdelivr.net/npm/handsontable@13.0.0/dist/handsontable.min.js"></script>
 
-  <!-- 🔥 Firebase config goes here -->
-  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js"></script>
-  
-  <script>
+  <!-- Firebase config -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-analytics.js";
+    import { getFirestore } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+
     // Firebase 配置
     const firebaseConfig = {
       apiKey: "AIzaSyBVY4Wt1Of8jeLtp0EQ5_S1_V97EtYiw54",
@@ -46,13 +47,13 @@
     };
 
     // 初始化 Firebase
-    const app = firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
+    // 初始化表格
     const container = document.getElementById('board');
     let hot;
 
-    // 初始化 Handsontable（默认一个空表）
     const data = [
       ['活动', '姓名', 'Required Leads', 'Pruforce Leads', 'Updated Status Leads']
     ];
@@ -64,7 +65,7 @@
       width: '100%',
       height: 500,
       stretchH: 'all',
-      licenseKey: 'non-commercial-and-evaluation', // 免费许可
+      licenseKey: 'non-commercial-and-evaluation', 
       contextMenu: true,
       manualRowMove: true,
       manualColumnMove: true,
@@ -74,10 +75,8 @@
       }
     });
 
-    // Firestore 数据读取
     const docRef = db.collection('sharedTables').doc('main');
 
-    // 从 Firestore 加载数据
     async function loadDataFromFirestore() {
       const doc = await docRef.get();
       if (doc.exists) {
@@ -88,12 +87,12 @@
       }
     }
 
-    // 保存数据到 Firestore
     async function saveDataToFirestore(tableData) {
       await docRef.set({ table: tableData });
     }
 
     loadDataFromFirestore();
   </script>
+
 </body>
 </html>
