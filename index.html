@@ -81,23 +81,30 @@
 
         console.log("Handsontable initialized.");
 
-        // 保存数据到 Google Sheets
-        async function saveDataToGoogleSheets(tableData) {
-          const response = await fetch('https://script.google.com/macros/s/AKfycbz_U6n-zqiN9F5siKFZc2aPTTnQIC9w79TG6xTL6XFDmKk2ac9ups5vdfLc2pnLRcYwHg/exec', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ table: tableData })  // 修改这里，将字段名从 tableData 改为 table
-          });
+        // 保存数据到 Google Sheets（使用 CORS 代理）
+async function saveDataToGoogleSheets(tableData) {
+  const proxyUrl = "https://corsproxy.io/?";
+  const scriptUrl = "https://script.google.com/macros/s/AKfycbz_U6n-zqiN9F5siKFZc2aPTTnQIC9w79TG6xTL6XFDmKk2ac9ups5vdfLc2pnLRcYwHg/exec";
 
-          if (!response.ok) {
-            console.error('Failed to save data to Google Sheets');
-          } else {
-            console.log('Data successfully saved to Google Sheets');
-          }
-        }
+  try {
+    const response = await fetch(proxyUrl + scriptUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ table: tableData }) // Make sure your Apps Script expects 'table'
+    });
 
+    if (!response.ok) {
+      console.error('❌ Failed to save data to Google Sheets');
+    } else {
+      const text = await response.text();
+      console.log('✅ Data successfully saved to Google Sheets:', text);
+    }
+  } catch (error) {
+    console.error('🚨 Fetch error:', error);
+  }
+}
         // 从 Google Sheets 加载数据
         async function loadDataFromGoogleSheets() {
           const response = await fetch('https://script.google.com/macros/s/AKfycbwpYQEzXAM-Nb86GKxwzw3rExEWzbD9TWcm1rQSZezaN7WAG2FolUKULHN_doITSTsqhg/exec');
