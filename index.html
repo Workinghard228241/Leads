@@ -2,53 +2,65 @@
 <html lang="zh">
 <head>
   <meta charset="UTF-8" />
-  <title>Leads 协作表</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@13.0.0/dist/handsontable.min.css" />
+  <title>Leads Tracker</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@13.0.0/dist/handsontable.min.css"/>
   <style>
-    body { font-family: sans-serif; padding: 2em; background: #f0f0f0; }
-    #board { margin-top: 1em; }
+    body { font-family: sans-serif; padding: 20px; background: #f4f4f4; }
+    h1 { text-align: center; }
+    #board { margin-top: 30px; }
   </style>
 </head>
 <body>
-  <h1>📋 协作表格</h1>
+  <h1>📋 活动进度协作表格</h1>
   <div id="board"></div>
 
   <script type="module">
-    import Handsontable from "https://cdn.jsdelivr.net/npm/handsontable@13.0.0/+esm";
+    import Handsontable from 'https://cdn.jsdelivr.net/npm/handsontable@13.0.0/+esm';
 
-    const container = document.getElementById("board");
-    const SHEET_API = "https://script.google.com/macros/s/AKfycby4-QCMAUBcPmAnUjzrZBVZ3rA1pKX-Ck4ZdRbvUefY0rTmoeYGg3j7FBi8IdMm0H8coQ/exec";
+    const container = document.getElementById('board');
+    const endpoint = 'https://script.google.com/macros/s/AKfycbxXVgg8mYo5K410ubjc4nUSdJOgV-fm_ei2gmWL5iQpjtsFEYK0JTrbRjBGWMPgxsfKow/exec';
 
     const hot = new Handsontable(container, {
       data: [],
       colHeaders: true,
       rowHeaders: true,
       width: '100%',
-      height: 400,
+      height: 500,
       stretchH: 'all',
       licenseKey: 'non-commercial-and-evaluation',
       contextMenu: true,
+      manualRowMove: true,
+      manualColumnMove: true,
       afterChange: async (changes, source) => {
-        if (source === "loadData") return;
-        await saveDataToSheet(hot.getData());
+        if (source === 'loadData') return;
+        await saveDataToGoogleSheets(hot.getData());
       }
     });
 
-    async function loadDataFromSheet() {
-      const response = await fetch(SHEET_API);
-      const result = await response.json();
-      hot.loadData(result.table);
+    async function saveDataToGoogleSheets(data) {
+      try {
+        await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ table: data })
+        });
+        console.log('Saved to Google Sheets');
+      } catch (error) {
+        console.error('Save failed:', error);
+      }
     }
 
-    async function saveDataToSheet(data) {
-      await fetch(SHEET_API, {
-        method: 'POST',
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ table: data })
-      });
+    async function loadDataFromGoogleSheets() {
+      try {
+        const res = await fetch(endpoint);
+        const json = await res.json();
+        if (json.table) hot.loadData(json.table);
+      } catch (error) {
+        console.error('Load failed:', error);
+      }
     }
 
-    loadDataFromSheet();
+    loadDataFromGoogleSheets();
   </script>
 </body>
 </html>
