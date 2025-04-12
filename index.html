@@ -30,54 +30,29 @@
   <script src="https://cdn.jsdelivr.net/npm/handsontable@13.0.0/dist/handsontable.min.js"></script>
 
   <!-- 🔥 Firebase config goes here -->
-  <!-- ⬇️ Paste your Firebase config snippet here -->
-
-<script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-analytics.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
-
-  // Your web app's Firebase configuration
-  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-  const firebaseConfig = {
-    apiKey: "AIzaSyBVY4Wt1Of8jeLtp0EQ5_S1_V97EtYiw54",
-    authDomain: "leads-a9bba.firebaseapp.com",
-    projectId: "leads-a9bba",
-    storageBucket: "leads-a9bba.firebasestorage.app",
-    messagingSenderId: "569369788274",
-    appId: "1:569369788274:web:f4cf9080d662519a0327eb",
-    measurementId: "G-J3NQ1WJ85F"
-  };
-
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-</script>
-
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js"></script>
+  
   <script>
+    // Firebase 配置
     const firebaseConfig = {
-      apiKey: "你的API Key",
-      authDomain: "你的Auth域名",
-      projectId: "你的项目ID",
-      storageBucket: "你的Bucket",
-      messagingSenderId: "你的Sender ID",
-      appId: "你的App ID"
+      apiKey: "AIzaSyBVY4Wt1Of8jeLtp0EQ5_S1_V97EtYiw54",
+      authDomain: "leads-a9bba.firebaseapp.com",
+      projectId: "leads-a9bba",
+      storageBucket: "leads-a9bba.firebasestorage.app",
+      messagingSenderId: "569369788274",
+      appId: "1:569369788274:web:f4cf9080d662519a0327eb",
+      measurementId: "G-J3NQ1WJ85F"
     };
 
+    // 初始化 Firebase
     const app = firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-  </script>
 
-  <!-- 表格逻辑 -->
-  <script>
     const container = document.getElementById('board');
     let hot;
 
-    // 初始化表格（默认一个空表）
+    // 初始化 Handsontable（默认一个空表）
     const data = [
       ['活动', '姓名', 'Required Leads', 'Pruforce Leads', 'Updated Status Leads']
     ];
@@ -102,6 +77,7 @@
     // Firestore 数据读取
     const docRef = db.collection('sharedTables').doc('main');
 
+    // 从 Firestore 加载数据
     async function loadDataFromFirestore() {
       const doc = await docRef.get();
       if (doc.exists) {
@@ -112,57 +88,12 @@
       }
     }
 
+    // 保存数据到 Firestore
     async function saveDataToFirestore(tableData) {
       await docRef.set({ table: tableData });
     }
 
     loadDataFromFirestore();
   </script>
-  <script>
-    const container = document.getElementById('board'); // 你的表格容器
-    let hot;
-
-    // 初始化 Handsontable
-    const data = [
-        ['活动', '姓名', 'Required Leads', 'Pruforce Leads', 'Updated Status Leads']
-    ];
-    hot = new Handsontable(container, {
-        data,
-        colHeaders: true,
-        rowHeaders: true,
-        width: '100%',
-        height: 500,
-        stretchH: 'all',
-        licenseKey: 'non-commercial-and-evaluation',  // 免费许可
-        contextMenu: true,
-        manualRowMove: true,
-        manualColumnMove: true,
-        afterChange: function(changes, source) {
-            if (source === 'loadData') return;
-            saveDataToFirestore(hot.getData());
-        }
-    });
-
-    // Firestore 数据读取
-    const docRef = db.collection('sharedTables').doc('main');
-
-    // 从 Firestore 加载数据
-    async function loadDataFromFirestore() {
-        const doc = await docRef.get();
-        if (doc.exists) {
-            const tableData = doc.data().table;
-            hot.loadData(tableData);
-        } else {
-            await docRef.set({ table: data });
-        }
-    }
-
-    // 保存数据到 Firestore
-    async function saveDataToFirestore(tableData) {
-        await docRef.set({ table: tableData });
-    }
-
-    loadDataFromFirestore();
-</script>
 </body>
 </html>
