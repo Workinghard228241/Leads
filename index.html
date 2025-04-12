@@ -1,91 +1,82 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Leads Tracker Board</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@13.0.0/dist/handsontable.min.css"/>
-  <script src="https://cdn.jsdelivr.net/npm/handsontable@13.0.0/dist/handsontable.min.js"></script>
-  <style>
-    body {
-      font-family: "Segoe UI", sans-serif;
-      padding: 20px;
-      background: #f9f9f9;
-    }
-    h1 {
-      text-align: center;
-      color: #333;
-    }
-    #board {
-      margin-top: 30px;
-      max-width: 100%;
-      overflow-x: auto;
-    }
-  </style>
-</head>
-<body>
-  <h1>📋 活动进度协作表格</h1>
-  <div id="board"></div>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lead Data</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/handsontable/13.0.0/handsontable.full.min.css">
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+        import Handsontable from "https://cdn.jsdelivr.net/npm/handsontable@13.0.0/+esm";
 
-  <script>
-    const container = document.getElementById('board');
-    const data = [
-      ['活动', '姓名', 'Required Leads', 'Pruforce Leads', 'Updated Status Leads']
-    ];
+        const firebaseConfig = {
+            apiKey: "AIzaSyBVY4Wt1Of8jeLtp0EQ5_S1_V97EtYiw54",
+            authDomain: "leads-a9bba.firebaseapp.com",
+            projectId: "leads-a9bba",
+            storageBucket: "leads-a9bba.appspot.com",
+            messagingSenderId: "569369788274",
+            appId: "1:569369788274:web:f4cf9080d662519a0327eb",
+            measurementId: "G-J3NQ1WJ85F"
+        };
 
-    const hot = new Handsontable(container, {
-      data,
-      colHeaders: true,
-      rowHeaders: true,
-      width: '100%',
-      height: 500,
-      stretchH: 'all',
-      licenseKey: 'non-commercial-and-evaluation',
-      contextMenu: true,
-      manualRowMove: true,
-      manualColumnMove: true,
-      afterChange: function(changes, source) {
-        if (source === 'loadData') return;
-        saveDataToGoogleSheets(hot.getData());  // 编辑后保存数据到 Google Sheets
-      }
-    });
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
-    // 保存数据到 Google Sheets
-    async function saveDataToGoogleSheets(tableData) {
-      try {
-        const response = await fetch('https://script.google.com/macros/s/AKfycbwpYQEzXAM-Nb86GKxwzw3rExEWzbD9TWcm1rQSZezaN7WAG2FolUKULHN_doITSTsqhg/exec', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ table: tableData })  // 发送数据到 Google Sheets
+        const container = document.getElementById('board');
+
+        const data = [
+            ['活动', '姓名', 'Required Leads', 'Pruforce Leads', 'Updated Status Leads']
+        ];
+
+        const hot = new Handsontable(container, {
+            data,
+            colHeaders: true,
+            rowHeaders: true,
+            width: '100%',
+            height: 500,
+            stretchH: 'all',
+            licenseKey: 'non-commercial-and-evaluation',
+            contextMenu: true,
+            manualRowMove: true,
+            manualColumnMove: true,
+            afterChange: function(changes, source) {
+                if (source === 'loadData') return;
+                saveDataToGoogleSheets(hot.getData());
+            }
         });
 
-        if (response.ok) {
-          console.log('Data successfully saved to Google Sheets');
-        } else {
-          console.error('Failed to save data');
+        async function saveDataToGoogleSheets(tableData) {
+            const response = await fetch('https://script.google.com/macros/s/AKfycbwpYQEzXAM-Nb86GKxwzw3rExEWzbD9TWcm1rQSZezaN7WAG2FolUKULHN_doITSTsqhg/exec', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ table: tableData })
+            });
+
+            if (!response.ok) {
+                console.error('Failed to save data to Google Sheets');
+            } else {
+                console.log('Data successfully saved to Google Sheets');
+            }
         }
-      } catch (error) {
-        console.error('Error:', error);
-      }
-    }
 
-    // 从 Google Sheets 加载数据
-    async function loadDataFromGoogleSheets() {
-      try {
-        const response = await fetch('https://script.google.com/macros/s/AKfycbwpYQEzXAM-Nb86GKxwzw3rExEWzbD9TWcm1rQSZezaN7WAG2FolUKULHN_doITSTsqhg/exec');
-        const data = await response.json();
+        async function loadDataFromGoogleSheets() {
+            const response = await fetch('https://script.google.com/macros/s/AKfycbwpYQEzXAM-Nb86GKxwzw3rExEWzbD9TWcm1rQSZezaN7WAG2FolUKULHN_doITSTsqhg/exec');
+            const data = await response.json();
 
-        if (data && data.table) {
-          hot.loadData(data.table);  // 加载数据到表格
+            if (data && data.table) {
+                hot.loadData(data.table);
+            } else {
+                await setDoc(doc(db, 'sharedTables', 'main'), { table: data });
+            }
         }
-      } catch (error) {
-        console.error('Failed to load data:', error);
-      }
-    }
 
-    loadDataFromGoogleSheets();  // 页面加载时加载数据
-  </script>
+        loadDataFromGoogleSheets();
+    </script>
+</head>
+<body>
+    <div id="board"></div>
 </body>
 </html>
