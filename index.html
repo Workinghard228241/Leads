@@ -2,130 +2,53 @@
 <html lang="zh">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Leads Tracker Board</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@13.0.0/dist/handsontable.min.css"/>
+  <title>Leads 协作表</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@13.0.0/dist/handsontable.min.css" />
   <style>
-    body {
-      font-family: "Segoe UI", sans-serif;
-      padding: 20px;
-      background: #f9f9f9;
-    }
-    h1 {
-      text-align: center;
-      color: #333;
-    }
-    #board {
-      margin-top: 30px;
-      max-width: 100%;
-      overflow-x: auto;
-    }
+    body { font-family: sans-serif; padding: 2em; background: #f0f0f0; }
+    #board { margin-top: 1em; }
   </style>
 </head>
 <body>
-  <h1>📋 活动进度协作表格</h1>
+  <h1>📋 协作表格</h1>
   <div id="board"></div>
 
   <script type="module">
-    document.addEventListener('DOMContentLoaded', async function () {
-      try {
-        console.log("DOM fully loaded and parsed.");
+    import Handsontable from "https://cdn.jsdelivr.net/npm/handsontable@13.0.0/+esm";
 
-        // Import necessary libraries only after DOM is fully loaded
-        const { initializeApp } = await import("https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js");
-        const { getFirestore, doc, getDoc, setDoc } = await import("https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js");
-        const Handsontable = (await import("https://cdn.jsdelivr.net/npm/handsontable@13.0.0/+esm")).default;
+    const container = document.getElementById("board");
+    const SHEET_API = "https://script.google.com/macros/s/AKfycby4-QCMAUBcPmAnUjzrZBVZ3rA1pKX-Ck4ZdRbvUefY0rTmoeYGg3j7FBi8IdMm0H8coQ/exec";
 
-        // Firebase configuration
-        const firebaseConfig = {
-          apiKey: "AIzaSyBVY4Wt1Of8jeLtp0EQ5_S1_V97EtYiw54",
-          authDomain: "leads-a9bba.firebaseapp.com",
-          projectId: "leads-a9bba",
-          storageBucket: "leads-a9bba.appspot.com",
-          messagingSenderId: "569369788274",
-          appId: "1:569369788274:web:f4cf9080d662519a0327eb",
-          measurementId: "G-J3NQ1WJ85F"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const container = document.getElementById('board');
-        if (!container) {
-          console.error('Element #board not found!');
-          return;
-        }
-
-        console.log("Handsontable container found, initializing Handsontable...");
-
-        const data = [
-          ['活动', '姓名', 'Required Leads', 'Pruforce Leads', 'Updated Status Leads']
-        ];
-
-        // Initialize Handsontable
-        const hot = new Handsontable(container, {
-          data,
-          colHeaders: true,
-          rowHeaders: true,
-          width: '100%',
-          height: 500,
-          stretchH: 'all',
-          licenseKey: 'non-commercial-and-evaluation',
-          contextMenu: true,
-          manualRowMove: true,
-          manualColumnMove: true,
-          afterChange: function(changes, source) {
-            if (source === 'loadData') return;
-            saveDataToGoogleSheets(hot.getData());
-          }
-        });
-
-        console.log("Handsontable initialized.");
-
-        // 保存数据到 Google Sheets（使用 CORS 代理）
-async function saveDataToGoogleSheets(tableData) {
-  const proxyUrl = "https://corsproxy.io/?";
-  const scriptUrl = "https://script.google.com/macros/s/AKfycbz_U6n-zqiN9F5siKFZc2aPTTnQIC9w79TG6xTL6XFDmKk2ac9ups5vdfLc2pnLRcYwHg/exec";
-
-  try {
-    const response = await fetch(proxyUrl + scriptUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ table: tableData }) // Make sure your Apps Script expects 'table'
-    });
-
-    if (!response.ok) {
-      console.error('❌ Failed to save data to Google Sheets');
-    } else {
-      const text = await response.text();
-      console.log('✅ Data successfully saved to Google Sheets:', text);
-    }
-  } catch (error) {
-    console.error('🚨 Fetch error:', error);
-  }
-}
-        // 从 Google Sheets 加载数据
-        async function loadDataFromGoogleSheets() {
-          const response = await fetch('https://script.google.com/macros/s/AKfycbwpYQEzXAM-Nb86GKxwzw3rExEWzbD9TWcm1rQSZezaN7WAG2FolUKULHN_doITSTsqhg/exec');
-          const data = await response.json();
-
-          console.log('Data loaded from Google Sheets:', data);  // 输出加载的原始数据
-
-          if (data && data.table) {  // 修改此处访问字段名为 table
-            hot.loadData(data.table);  // 修改此处为 data.table
-            console.log('Handsontable data loaded successfully.');
-          } else {
-            console.error('Failed to load data from Google Sheets');
-          }
-        }
-
-        loadDataFromGoogleSheets();
-
-      } catch (error) {
-        console.error("An error occurred:", error);
+    const hot = new Handsontable(container, {
+      data: [],
+      colHeaders: true,
+      rowHeaders: true,
+      width: '100%',
+      height: 400,
+      stretchH: 'all',
+      licenseKey: 'non-commercial-and-evaluation',
+      contextMenu: true,
+      afterChange: async (changes, source) => {
+        if (source === "loadData") return;
+        await saveDataToSheet(hot.getData());
       }
     });
+
+    async function loadDataFromSheet() {
+      const response = await fetch(SHEET_API);
+      const result = await response.json();
+      hot.loadData(result.table);
+    }
+
+    async function saveDataToSheet(data) {
+      await fetch(SHEET_API, {
+        method: 'POST',
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ table: data })
+      });
+    }
+
+    loadDataFromSheet();
   </script>
 </body>
 </html>
